@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>窝囊费计算器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#FF7D00',
+                        neutral: {
+                            100: '#F5F7FA',
+                            200: '#E5E6EB',
+                            300: '#C9CDD4',
+                            400: '#86909C',
+                            500: '#4E5969',
+                            600: '#272E3B',
+                            700: '#1D2129',
+                        }
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 10px 30px -5px rgba(0, 0, 0, 0.1)',
+                        'card-hover': '0 20px 40px -5px rgba(0, 0, 0, 0.15)',
+                    }
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .text-gradient {
+                background-clip: text;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            .animate-number {
+                transition: all 0.3s ease-out;
+            }
+            .glass {
+                backdrop-filter: blur(10px);
+                background-color: rgba(255, 255, 255, 0.7);
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gradient-to-br from-neutral-100 to-neutral-200 min-h-screen flex flex-col">
+    <!-- 导航栏 -->
+    <header class="sticky top-0 z-50 glass border-b border-neutral-200">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-calculator text-primary text-2xl"></i>
+                <h1 class="text-xl md:text-2xl font-bold text-neutral-700">窝囊费计算器</h1>
+            </div>
+            <nav>
+                <ul class="hidden md:flex space-x-6">
+                    <li><a href="#" class="text-neutral-500 hover:text-primary transition-colors">首页</a></li>
+                    <li><a href="#" class="text-neutral-500 hover:text-primary transition-colors">关于</a></li>
+                    <li><a href="#" class="text-neutral-500 hover:text-primary transition-colors">帮助</a></li>
+                </ul>
+                <button class="md:hidden text-neutral-700">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="flex-grow container mx-auto px-4 py-8 md:py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 左侧：输入区域 -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl shadow-card p-6 transition-all duration-300 hover:shadow-card-hover">
+                    <h2 class="text-xl font-bold mb-6 text-neutral-700 flex items-center">
+                        <i class="fa-solid fa-sliders text-primary mr-2"></i>设置参数
+                    </h2>
+                    
+                    <div id="settingsForm" class="space-y-6">
+                        <div>
+                            <label for="monthlySalary" class="block text-sm font-medium text-neutral-500 mb-1">月薪 (税前) (元)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-400">
+                                    <i class="fa-solid fa-yen-sign"></i>
+                                </span>
+                                <input type="number" id="monthlySalary" name="monthlySalary" min="0" step="0.01" value="10000" 
+                                    class="w-full pl-10 pr-3 py-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="workHours" class="block text-sm font-medium text-neutral-500 mb-1">日工作时长 (小时)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-400">
+                                    <i class="fa-solid fa-clock"></i>
+                                </span>
+                                <input type="number" id="workHours" name="workHours" min="0" step="0.1" value="8" 
+                                    class="w-full pl-10 pr-3 py-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="workDays" class="block text-sm font-medium text-neutral-500 mb-1">月工作日数 (天)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-400">
+                                    <i class="fa-solid fa-calendar-days"></i>
+                                </span>
+                                <input type="number" id="workDays" name="workDays" min="0" step="1" value="22" 
+                                    class="w-full pl-10 pr-3 py-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="workStartTime" class="block text-sm font-medium text-neutral-500 mb-1">上班时间</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-400">
+                                    <i class="fa-solid fa-clock"></i>
+                                </span>
+                                <input type="time" id="workStartTime" name="workStartTime" value="09:00" 
+                                    class="w-full pl-10 pr-3 py-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="workEndTime" class="block text-sm font-medium text-neutral-500 mb-1">下班时间</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-400">
+                                    <i class="fa-solid fa-clock"></i>
+                                </span>
+                                <input type="time" id="workEndTime" name="workEndTime" value="18:00" 
+                                    class="w-full pl-10 pr-3 py-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all">
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-neutral-200 pt-6">
+                            <h3 class="text-lg font-medium text-neutral-700 mb-4">五险一金设置</h3>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="pensionInsurance" class="block text-sm font-medium text-neutral-500 mb-1">养老保险 (%)</label>
+                                    <input type="number" id="pensionInsurance" name="pensionInsurance" min="0" max="100" step="0.1" value="8" 
+                                        class="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all">
+                                </div>
+                                
+                                <div>
+                                    <label for="medicalInsurance" class="block text-sm font-medium text-neutral-500 mb-1">医疗保险 (%)</label>
+                                    <input type="number" id="medicalInsurance" name="medicalInsurance" min="0" max="100" step="0.1" value="2" 
+                                        class="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all">
+                                </div>
+                                
+                                <div>
+                                    <label for="unemploymentInsurance" class="block text-sm font-medium text-neutral-500 mb-1">失业保险 (%)</label>
+                                    <input type="number" id="unemploymentInsurance" name="unemploymentInsurance" min="0" max="100" step="0.1" value="0.5" 
+                                        class="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all">
+                                </div>
+                                
+                                <div>
+                                    <label for="housingFund" class="block text-sm font-medium text-neutral-500 mb-1">住房公积金 (%)</label>
+                                    <input type="number" id="housingFund" name="housingFund" min="0" max="12" step="0.1" value="8" 
+                                        class="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all">
+                                </div>
+                                
+                                <!-- 工伤保险和生育保险通常由单位缴纳，个人不缴纳 -->
+                            </div>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <button id="applySettingsBtn" 
+                                class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center">
+                                <i class="fa-solid fa-check mr-2"></i>应用设置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 说明卡片 -->
+                <div class="bg-white rounded-2xl shadow-card p-6 mt-6 transition-all duration-300 hover:shadow-card-hover">
+                    <h3 class="text-lg font-bold mb-3 text-neutral-700 flex items-center">
+                        <i class="fa-solid fa-info-circle text-primary mr-2"></i>计算说明
+                    </h3>
+                    <ul class="space-y-2 text-neutral-600">
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>扣除五险一金后月薪 = 月薪 × (1 - 养老保险比例 - 医疗保险比例 - 失业保险比例 - 住房公积金比例)</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>日窝囊费 = 扣除五险一金后月薪 ÷ 月工作日数</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>时窝囊费 = 日窝囊费 ÷ 日工作时长</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>实时窝囊费 = 时窝囊费 × 当前工作时长</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 右侧：计算结果区域 -->
+            <div class="lg:col-span-2">
+                <!-- 当前窝囊费 -->
+                <div class="bg-white rounded-2xl shadow-card p-6 mb-6 transition-all duration-300 hover:shadow-card-hover">
+                    <h2 class="text-xl font-bold mb-4 text-neutral-700 flex items-center">
+                        <i class="fa-solid fa-money-bill-wave text-secondary mr-2"></i>当前窝囊费
+                    </h2>
+                    
+                    <div class="flex flex-col items-center justify-center py-8">
+                        <div class="relative mb-4">
+                            <div id="currentWorthless" class="text-[clamp(2.5rem,8vw,5rem)] font-bold text-gradient bg-gradient-to-r from-secondary to-primary text-shadow animate-number">0.00</div>
+                            <span class="absolute -top-4 right-0 text-neutral-400 text-lg">元</span>
+                        </div>
+                        <p class="text-neutral-500 flex items-center">
+                            <i class="fa-solid fa-clock mr-2"></i>
+                            <span id="updateTime">更新于: 刚刚</span>
+                        </p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                        <div class="bg-neutral-100 rounded-xl p-4 text-center">
+                            <p class="text-neutral-500 text-sm mb-1">今日窝囊费</p>
+                            <p id="dailyWorthless" class="text-xl font-bold text-neutral-700">0.00 元</p>
+                        </div>
+                        <div class="bg-neutral-100 rounded-xl p-4 text-center">
+                            <p class="text-neutral-500 text-sm mb-1">时窝囊费</p>
+                            <p id="hourlyWorthless" class="text-xl font-bold text-neutral-700">0.00 元</p>
+                        </div>
+                        <div class="bg-neutral-100 rounded-xl p-4 text-center">
+                            <p class="text-neutral-500 text-sm mb-1">月窝囊费 (税后)</p>
+                            <p id="monthlyWorthless" class="text-xl font-bold text-neutral-700">0.00 元</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 新增：五险一金扣除情况 -->
+                    <div class="mt-6 pt-6 border-t border-neutral-200">
+                        <h3 class="text-lg font-medium text-neutral-700 mb-3">五险一金扣除</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div class="bg-neutral-100 rounded-lg p-3 text-center">
+                                <p class="text-xs text-neutral-500 mb-1">养老保险</p>
+                                <p id="pensionAmount" class="text-sm font-medium text-neutral-700">0.00 元</p>
+                            </div>
+                            <div class="bg-neutral-100 rounded-lg p-3 text-center">
+                                <p class="text-xs text-neutral-500 mb-1">医疗保险</p>
+                                <p id="medicalAmount" class="text-sm font-medium text-neutral-700">0.00 元</p>
+                            </div>
+                            <div class="bg-neutral-100 rounded-lg p-3 text-center">
+                                <p class="text-xs text-neutral-500 mb-1">失业保险</p>
+                                <p id="unemploymentAmount" class="text-sm font-medium text-neutral-700">0.00 元</p>
+                            </div>
+                            <div class="bg-neutral-100 rounded-lg p-3 text-center">
+                                <p class="text-xs text-neutral-500 mb-1">住房公积金</p>
+                                <p id="housingFundAmount" class="text-sm font-medium text-neutral-700">0.00 元</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 bg-neutral-100 rounded-lg p-3 flex justify-between items-center">
+                            <span class="text-sm font-medium text-neutral-700">总计扣除</span>
+                            <span id="totalDeduction" class="text-sm font-bold text-red-500">0.00 元</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 窝囊费进度 -->
+                <div class="bg-white rounded-2xl shadow-card p-6 transition-all duration-300 hover:shadow-card-hover">
+                    <h2 class="text-xl font-bold mb-6 text-neutral-700 flex items-center">
+                        <i class="fa-solid fa-chart-line text-primary mr-2"></i>窝囊费进度
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-neutral-600 font-medium">今日进度</span>
+                                <span id="dailyProgressText" class="text-neutral-600">0%</span>
+                            </div>
+                            <div class="h-4 bg-neutral-100 rounded-full overflow-hidden">
+                                <div id="dailyProgressBar" class="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-700" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-neutral-600 font-medium">本月进度</span>
+                                <span id="monthlyProgressText" class="text-neutral-600">0%</span>
+                            </div>
+                            <div class="h-4 bg-neutral-100 rounded-full overflow-hidden">
+                                <div id="monthlyProgressBar" class="h-full bg-gradient-to-r from-primary/70 to-secondary/70 transition-all duration-700" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- 工作时间 -->
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-neutral-600 font-medium">今日工作时间</span>
+                                <div class="flex items-center">
+                                    <button id="resetTimer" class="text-neutral-400 hover:text-neutral-600 transition-colors mr-2">
+                                        <i class="fa-solid fa-refresh"></i>
+                                    </button>
+                                    <button id="pauseResumeTimer" class="text-neutral-400 hover:text-neutral-600 transition-colors">
+                                        <i class="fa-solid fa-pause"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex justify-center">
+                                <div id="workTimer" class="text-3xl font-mono text-neutral-700">00:00:00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-neutral-700 text-neutral-300 py-8 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4 text-white">窝囊费计算器</h3>
+                    <p class="text-sm">一款快速计算你每日、每时所赚"窝囊费"的工具，让你清晰了解自己的价值。</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4 text-white">功能</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">实时窝囊费计算</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">五险一金扣除计算</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">自定义工作时间</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">进度追踪</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4 text-white">联系我们</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-neutral-300 hover:text-white transition-colors">
+                            <i class="fa-brands fa-github text-xl"></i>
+                        </a>
+                        <a href="#" class="text-neutral-300 hover:text-white transition-colors">
+                            <i class="fa-brands fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="text-neutral-300 hover:text-white transition-colors">
+                            <i class="fa-brands fa-linkedin text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-neutral-600 mt-8 pt-6 text-center text-sm">
+                <p>&copy; 2025 窝囊费计算器 - 所有权利保留</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 全局变量
+        let monthlySalary = 10000; // 月薪
+        let workHours = 8; // 日工作时长
+        let workDays = 22; // 月工作日数
+        let workStartTime = "09:00"; // 上班时间
+        let workEndTime = "18:00"; // 下班时间
+        
+        // 五险一金比例
+        let pensionInsuranceRate = 8; // 养老保险比例
+        let medicalInsuranceRate = 2; // 医疗保险比例
+        let unemploymentInsuranceRate = 0.5; // 失业保险比例
+        let housingFundRate = 8; // 住房公积金比例
+        
+        let dailyWorthless = 0; // 日窝囊费
+        let hourlyWorthless = 0; // 时窝囊费
+        let currentWorthless = 0; // 当前窝囊费
+        let salaryAfterDeduction = 0; // 扣除五险一金后的月薪
+        
+        let timerInterval; // 计时器间隔
+        let isTimerRunning = true; // 计时器是否运行中
+        
+        // 上次更新时间
+        let lastUpdateTime = new Date();
+        
+        // DOM 元素
+        const currentWorthlessEl = document.getElementById('currentWorthless');
+        const dailyWorthlessEl = document.getElementById('dailyWorthless');
+        const hourlyWorthlessEl = document.getElementById('hourlyWorthless');
+        const monthlyWorthlessEl = document.getElementById('monthlyWorthless');
+        const updateTimeEl = document.getElementById('updateTime');
+        const workTimerEl = document.getElementById('workTimer');
+        const dailyProgressBarEl = document.getElementById('dailyProgressBar');
+        const dailyProgressTextEl = document.getElementById('dailyProgressText');
+        const monthlyProgressBarEl = document.getElementById('monthlyProgressBar');
+        const monthlyProgressTextEl = document.getElementById('monthlyProgressText');
+        
+        // 五险一金扣除元素
+        const pensionAmountEl = document.getElementById('pensionAmount');
+        const medicalAmountEl = document.getElementById('medicalAmount');
+        const unemploymentAmountEl = document.getElementById('unemploymentAmount');
+        const housingFundAmountEl = document.getElementById('housingFundAmount');
+        const totalDeductionEl = document.getElementById('totalDeduction');
+        
+        // 设置表单
+        const monthlySalaryInput = document.getElementById('monthlySalary');
+        const workHoursInput = document.getElementById('workHours');
+        const workDaysInput = document.getElementById('workDays');
+        const workStartTimeInput = document.getElementById('workStartTime');
+        const workEndTimeInput = document.getElementById('workEndTime');
+        
+        // 五险一金输入
+        const pensionInsuranceInput = document.getElementById('pensionInsurance');
+        const medicalInsuranceInput = document.getElementById('medicalInsurance');
+        const unemploymentInsuranceInput = document.getElementById('unemploymentInsurance');
+        const housingFundInput = document.getElementById('housingFund');
+        
+        // 控制按钮
+        const pauseResumeTimerBtn = document.getElementById('pauseResumeTimer');
+        const resetTimerBtn = document.getElementById('resetTimer');
+        const applySettingsBtn = document.getElementById('applySettingsBtn');
+        
+        // 将时间字符串转换为秒数
+        function timeToSeconds(timeString) {
+            const [hours, minutes] = timeString.split(':').map(Number);
+            return hours * 3600 + minutes * 60;
+        }
+        
+        // 获取当前工作时间（秒）
+        function getCurrentWorkTime() {
+            const now = new Date();
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+            const currentSeconds = now.getSeconds();
+            const currentTimeInSeconds = currentHours * 3600 + currentMinutes * 60 + currentSeconds;
+            
+            const startWorkTimeInSeconds = timeToSeconds(workStartTime);
+            const endWorkTimeInSeconds = timeToSeconds(workEndTime);
+            
+            // 如果当前时间在工作时间范围内
+            if (currentTimeInSeconds >= startWorkTimeInSeconds && currentTimeInSeconds <= endWorkTimeInSeconds) {
+                return currentTimeInSeconds - startWorkTimeInSeconds;
+            } 
+            // 如果当前时间早于上班时间
+            else if (currentTimeInSeconds < startWorkTimeInSeconds) {
+                return 0;
+            } 
+            // 如果当前时间晚于下班时间
+            else {
+                return endWorkTimeInSeconds - startWorkTimeInSeconds;
+            }
+        }
+        
+        // 获取今日工作进度百分比
+        function getDailyWorkProgress() {
+            const totalWorkSeconds = workHours * 3600;
+            const currentWorkSeconds = getCurrentWorkTime();
+            
+            return (currentWorkSeconds / totalWorkSeconds) * 100;
+        }
+        
+        // 计算五险一金扣除
+        function calculateDeductions() {
+            const pensionAmount = monthlySalary * (pensionInsuranceRate / 100);
+            const medicalAmount = monthlySalary * (medicalInsuranceRate / 100);
+            const unemploymentAmount = monthlySalary * (unemploymentInsuranceRate / 100);
+            const housingFundAmount = monthlySalary * (housingFundRate / 100);
+            
+            const totalDeduction = pensionAmount + medicalAmount + unemploymentAmount + housingFundAmount;
+            
+            // 更新显示
+            pensionAmountEl.textContent = pensionAmount.toFixed(2) + ' 元';
+            medicalAmountEl.textContent = medicalAmount.toFixed(2) + ' 元';
+            unemploymentAmountEl.textContent = unemploymentAmount.toFixed(2) + ' 元';
+            housingFundAmountEl.textContent = housingFundAmount.toFixed(2) + ' 元';
+            totalDeductionEl.textContent = totalDeduction.toFixed(2) + ' 元';
+            
+            return {
+                pensionAmount,
+                medicalAmount,
+                unemploymentAmount,
+                housingFundAmount,
+                totalDeduction
+            };
+        }
+        
+        // 初始化计算
+        function initCalculation() {
+            // 从输入框获取初始值
+            monthlySalary = parseFloat(monthlySalaryInput.value) || 0;
+            workHours = parseFloat(workHoursInput.value) || 0;
+            workDays = parseFloat(workDaysInput.value) || 0;
+            workStartTime = workStartTimeInput.value;
+            workEndTime = workEndTimeInput.value;
+            
+            // 获取五险一金比例
+            pensionInsuranceRate = parseFloat(pensionInsuranceInput.value) || 0;
+            medicalInsuranceRate = parseFloat(medicalInsuranceInput.value) || 0;
+            unemploymentInsuranceRate = parseFloat(unemploymentInsuranceInput.value) || 0;
+            housingFundRate = parseFloat(housingFundInput.value) || 0;
+            
+            // 计算基础值
+            calculateBaseValues();
+            
+            // 开始计时器
+            startTimer();
+            
+            // 更新显示
+            updateDisplay();
+        }
+        
+        // 计算基础值
+        function calculateBaseValues() {
+            // 计算五险一金扣除
+            const deductions = calculateDeductions();
+            
+            // 计算扣除五险一金后的月薪
+            salaryAfterDeduction = monthlySalary - deductions.totalDeduction;
+            
+            // 日窝囊费 = 扣除五险一金后月薪 ÷ 月工作日数
+            dailyWorthless = salaryAfterDeduction / workDays;
+            
+            // 时窝囊费 = 日窝囊费 ÷ 日工作时长
+            hourlyWorthless = dailyWorthless / workHours;
+            
+            // 每秒窝囊费 = 时窝囊费 ÷ 3600
+            const perSecondWorthless = hourlyWorthless / 3600;
+            
+            // 更新当前窝囊费
+            const currentWorkTime = getCurrentWorkTime();
+            currentWorthless = perSecondWorthless * currentWorkTime;
+        }
+        
+        // 更新显示
+        function updateDisplay() {
+            // 更新当前窝囊费
+            currentWorthlessEl.textContent = currentWorthless.toFixed(2);
+            
+            // 更新日、时、月窝囊费
+            dailyWorthlessEl.textContent = dailyWorthless.toFixed(2) + ' 元';
+            hourlyWorthlessEl.textContent = hourlyWorthless.toFixed(2) + ' 元';
+            monthlyWorthlessEl.textContent = salaryAfterDeduction.toFixed(2) + ' 元';
+            
+            // 更新上次更新时间
+            lastUpdateTime = new Date();
+            updateTimeEl.textContent = `更新于: ${lastUpdateTime.getHours().toString().padStart(2, '0')}:${lastUpdateTime.getMinutes().toString().padStart(2, '0')}:${lastUpdateTime.getSeconds().toString().padStart(2, '0')}`;
+            
+            // 更新计时器显示
+            const currentWorkTime = getCurrentWorkTime();
+            const hours = Math.floor(currentWorkTime / 3600);
+            const minutes = Math.floor((currentWorkTime % 3600) / 60);
+            const seconds = currentWorkTime % 60;
+            workTimerEl.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // 更新今日进度条
+            const dailyProgress = getDailyWorkProgress();
+            dailyProgressBarEl.style.width = `${Math.min(dailyProgress, 100)}%`;
+            dailyProgressTextEl.textContent = `${Math.min(Math.round(dailyProgress), 100)}%`;
+            
+            // 计算每月进度
+            const today = new Date();
+            const dayOfMonth = today.getDate();
+            const monthlyProgress = (dayOfMonth / workDays) * 100;
+            monthlyProgressBarEl.style.width = `${Math.min(monthlyProgress, 100)}%`;
+            monthlyProgressTextEl.textContent = `${Math.min(Math.round(monthlyProgress), 100)}%`;
+        }
+        
+        // 开始计时器
+        function startTimer() {
+            // 先清除现有计时器
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            // 每秒更新一次
+            timerInterval = setInterval(() => {
+                if (isTimerRunning) {
+                    calculateBaseValues();
+                    updateDisplay();
+                    
+                    // 添加数字变化动画
+                    currentWorthlessEl.classList.add('scale-105');
+                    setTimeout(() => {
+                        currentWorthlessEl.classList.remove('scale-105');
+                    }, 200);
+                }
+            }, 1000);
+        }
+        
+        // 暂停/恢复计时器
+        function toggleTimer() {
+            isTimerRunning = !isTimerRunning;
+            
+            if (isTimerRunning) {
+                pauseResumeTimerBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                pauseResumeTimerBtn.title = '暂停计时器';
+            } else {
+                pauseResumeTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+                pauseResumeTimerBtn.title = '恢复计时器';
+            }
+        }
+        
+        // 重置计时器
+        function resetTimer() {
+            if (confirm('确定要重置今日工作时间吗？')) {
+                calculateBaseValues();
+                updateDisplay();
+            }
+        }
+        
+        // 应用设置
+        function applySettings() {
+            // 获取新设置
+            const newMonthlySalary = parseFloat(monthlySalaryInput.value) || 0;
+            const newWorkHours = parseFloat(workHoursInput.value) || 0;
+            const newWorkDays = parseFloat(workDaysInput.value) || 0;
+            const newWorkStartTime = workStartTimeInput.value;
+            const newWorkEndTime = workEndTimeInput.value;
+            
+            // 获取五险一金比例
+            const newPensionInsuranceRate = parseFloat(pensionInsuranceInput.value) || 0;
+            const newMedicalInsuranceRate = parseFloat(medicalInsuranceInput.value) || 0;
+            const newUnemploymentInsuranceRate = parseFloat(unemploymentInsuranceInput.value) || 0;
+            const newHousingFundRate = parseFloat(housingFundInput.value) || 0;
+            
+            // 验证输入
+            if (newMonthlySalary <= 0 || newWorkHours <= 0 || newWorkDays <= 0) {
+                alert('请输入有效的数值（必须大于0）');
+                return;
+            }
+            
+            // 验证五险一金比例
+            if (newPensionInsuranceRate < 0 || newPensionInsuranceRate > 100 ||
+                newMedicalInsuranceRate < 0 || newMedicalInsuranceRate > 100 ||
+                newUnemploymentInsuranceRate < 0 || newUnemploymentInsuranceRate > 100 ||
+                newHousingFundRate < 0 || newHousingFundRate > 12) {
+                alert('请输入有效的五险一金比例（养老保险、医疗保险、失业保险为0-100，住房公积金为0-12）');
+                return;
+            }
+            
+            // 验证工作时间
+            const startTimeSeconds = timeToSeconds(newWorkStartTime);
+            const endTimeSeconds = timeToSeconds(newWorkEndTime);
+            
+            if (startTimeSeconds >= endTimeSeconds) {
+                alert('上班时间必须早于下班时间');
+                return;
+            }
+            
+            // 更新设置
+            monthlySalary = newMonthlySalary;
+            workHours = newWorkHours;
+            workDays = newWorkDays;
+            workStartTime = newWorkStartTime;
+            workEndTime = newWorkEndTime;
+            
+            // 更新五险一金比例
+            pensionInsuranceRate = newPensionInsuranceRate;
+            medicalInsuranceRate = newMedicalInsuranceRate;
+            unemploymentInsuranceRate = newUnemploymentInsuranceRate;
+            housingFundRate = newHousingFundRate;
+            
+            // 重新计算
+            calculateBaseValues();
+            
+            // 更新显示
+            updateDisplay();
+            
+            // 显示成功消息
+            const originalText = applySettingsBtn.innerHTML;
+            
+            applySettingsBtn.innerHTML = '<i class="fa-solid fa-check-circle mr-2"></i>设置已更新';
+            applySettingsBtn.classList.add('bg-green-500');
+            
+            setTimeout(() => {
+                applySettingsBtn.innerHTML = originalText;
+                applySettingsBtn.classList.remove('bg-green-500');
+            }, 2000);
+        }
+        
+        // 事件监听
+        applySettingsBtn.addEventListener('click', applySettings);
+        pauseResumeTimerBtn.addEventListener('click', toggleTimer);
+        resetTimerBtn.addEventListener('click', resetTimer);
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', initCalculation);
+    </script>
+</body>
+</html>
+    
